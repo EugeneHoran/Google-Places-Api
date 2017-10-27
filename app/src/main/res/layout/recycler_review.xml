@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="RtlHardcoded,ContentDescription,UnusedAttribute,RtlSymmetry">
+
+    <data>
+
+        <variable
+            name="object"
+            type="exercise.noteworth.com.model.DetailsReview" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="1dp"
+        android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/profileImage"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:layout_marginRight="16dp"
+            app:loadCircleImage="@{object.profilePhotoUrl}" />
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:layout_toRightOf="@+id/profileImage"
+            android:fontFamily="sans-serif-medium"
+            android:text="@{object.authorName}"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="14sp" />
+
+        <RatingBar
+            android:id="@+id/ratingBar"
+            style="?android:attr/ratingBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/name"
+            android:layout_toRightOf="@+id/profileImage"
+            android:max="5"
+            android:rating="@{object.rating}" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/name"
+            android:layout_toRightOf="@+id/ratingBar"
+            android:fontFamily="sans-serif"
+            android:paddingLeft="8dp"
+            android:text="@{object.relativeTimeDescription}"
+            android:textColor="@color/colorPrimaryLight"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/review"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ratingBar"
+            android:layout_toRightOf="@+id/profileImage"
+            android:fontFamily="sans-serif"
+            android:paddingTop="12dp"
+            android:text="@{object.text}"
+            android:textColor="@color/colorPrimary"
+            android:textSize="14sp" />
+
+    </RelativeLayout>
+</layout>

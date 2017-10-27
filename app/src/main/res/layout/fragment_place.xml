@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".places.PlacesActivity"
+    tools:ignore="RtlHardcoded,RtlSymmetry,UnusedAttribute">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="fragment"
+            type="exercise.noteworth.com.places.PlaceFragment" />
+
+        <variable
+            name="presenter"
+            type="exercise.noteworth.com.places.PlacePresenter" />
+
+    </data>
+
+    <android.support.v4.widget.DrawerLayout
+        android:id="@+id/drawer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.design.widget.CoordinatorLayout
+            android:id="@+id/coordinator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <android.support.design.widget.AppBarLayout
+                android:id="@+id/app_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/AppTheme.NoActionBar.AppBarOverlay">
+
+                <android.support.v7.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:layout_scrollFlags="scroll|enterAlways|snap"
+                    app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay"
+                    app:subtitle="@{presenter.toolbarSubTitle}"
+                    app:title="@string/restaurant_search" />
+
+            </android.support.design.widget.AppBarLayout>
+
+            <android.support.v4.widget.NestedScrollView
+                android:id="@+id/nestedScroll"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+                <LinearLayout
+                    android:id="@+id/container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/recycler"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clipToPadding="false"
+                        android:paddingBottom="24dp"
+                        android:visibility="@{presenter.showRecycler? View.VISIBLE : View.GONE}" />
+
+                    <ProgressBar
+                        android:id="@+id/footer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginBottom="24dp"
+                        android:layout_marginTop="24dp"
+                        android:visibility="@{presenter.showLoading? View.VISIBLE : View.GONE}" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="88dp"
+                        android:layout_marginTop="88dp"
+                        android:text="@string/no_results_found_based_of_filter"
+                        android:visibility="@{presenter.showNoResults? View.VISIBLE : View.GONE}" />
+                </LinearLayout>
+            </android.support.v4.widget.NestedScrollView>
+
+            <TextView
+                android:id="@+id/headerFilter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorPrimaryLight"
+                android:elevation="2dp"
+                android:padding="16dp"
+                android:text="@{fragment.filterString}"
+                android:textColor="@color/white"
+                android:visibility="visible"
+                app:layout_anchor="@id/app_bar"
+                app:layout_anchorGravity="bottom"
+                app:layout_behavior="exercise.noteworth.com.util.PostBehavior" />
+
+        </android.support.design.widget.CoordinatorLayout>
+
+        <android.support.v4.widget.NestedScrollView
+            android:id="@+id/drawer_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="@color/white"
+            android:fitsSystemWindows="true"
+            android:orientation="vertical"
+            tools:ignore="Overdraw">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:animateLayoutChanges="true"
+                android:descendantFocusability="blocksDescendants"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/Text.Divider"
+                    android:layout_marginBottom="6dp"
+                    android:text="@string/location" />
+
+                <TextView
+                    style="@style/Text.Selector"
+                    android:drawableRight="@drawable/ic_location"
+                    android:onClick="@{fragment::onChangeLocationClicked}"
+                    android:text="@string/change_location" />
+
+                <!-- Filter Title -->
+                <TextView
+                    style="@style/Text.Divider"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/filter" />
+
+                <!-- Filter -->
+                <TextView
+                    style="@style/Text.Small"
+                    android:text="@string/sort_by" />
+
+                <Spinner
+                    android:id="@+id/spinnerFilter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/spinner_filter"
+                    android:paddingBottom="16dp"
+                    android:paddingLeft="8dp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/lighter_grey" />
+
+                <TextView
+                    style="@style/Text.Small"
+                    android:text="@string/radius"
+                    android:visibility="@{presenter.showRadius? View.VISIBLE : View.GONE}" />
+
+                <Spinner
+                    android:id="@+id/spinnerRadius"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/spinner_distance"
+                    android:paddingBottom="16dp"
+                    android:paddingLeft="8dp"
+                    android:visibility="@{presenter.showRadius? View.VISIBLE : View.GONE}" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/lighter_grey"
+                    android:visibility="@{presenter.showRadius? View.VISIBLE : View.GONE}" />
+
+                <TextView
+                    style="@style/Text.Small"
+                    android:text="@string/price" />
+
+                <exercise.noteworth.com.util.SwitchMultiButton
+                    android:id="@+id/switchMoney"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginRight="16dp"
+                    android:padding="8dp"
+                    app:selectedColor="#1c7626"
+                    app:selectedTab="-1"
+                    app:strokeRadius="16dp"
+                    app:strokeWidth="1dp"
+                    app:textSize="12sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/lighter_grey" />
+
+                <TextView
+                    style="@style/Text.Small"
+                    android:text="@string/food_type" />
+
+                <ListView
+                    android:id="@+id/listViewKeyword"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:divider="@android:color/transparent" />
+            </LinearLayout>
+        </android.support.v4.widget.NestedScrollView>
+    </android.support.v4.widget.DrawerLayout>
+</layout>

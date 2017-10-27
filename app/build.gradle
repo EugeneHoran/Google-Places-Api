@@ -1,0 +1,94 @@
+apply plugin: 'com.android.application'
+apply plugin: 'realm-android'
+
+repositories {
+    maven { url 'https://maven.google.com' }
+    maven { url 'https://jitpack.io' }
+}
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
+    defaultConfig {
+        applicationId "exercise.noteworth.com"
+        minSdkVersion 17
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
+        buildConfigField("String", "PLACES_URL", "\"${places_api_url}\"")
+        buildConfigField("String", "GEO_URL", "\"${geo_api_url}\"")
+        buildConfigField 'Integer', 'TIMEOUT', '60'
+    }
+    buildTypes {
+        debug {
+            buildConfigField("String", "PLACES_KEY", "\"${places_api_key}\"")
+            buildConfigField("String", "GEO_KEY", "\"${geo_api_key}\"")
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    packagingOptions {
+        // Exclude files to avoid packaging collisions (same file name in multiple dependencies).
+        exclude 'LICENSE.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE-FIREBASE.txt'
+        exclude 'META-INF/NOTICE'
+    }
+    lintOptions {
+        abortOnError false
+    }
+    dataBinding {
+        enabled = true
+    }
+    realm {
+        syncEnabled = true;
+    }
+}
+
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.google.code.findbugs'
+    })
+    // Play
+    compile 'com.google.android.gms:play-services-places:11.4.2'
+    compile 'com.google.android.gms:play-services-location:11.4.2'
+    // Network
+    compile('com.squareup.retrofit2:retrofit:2.3.0') {
+        exclude module: 'okhttp3'
+    }
+    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    compile 'com.squareup.okhttp3:okhttp:3.9.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.8.0'
+    // Rx
+    compile 'io.reactivex.rxjava2:rxjava:2.1.3'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    // Support
+    compile "com.android.support:appcompat-v7:${android_support_lib_version}"
+    compile "com.android.support:design:${android_support_lib_version}"
+    compile "com.android.support:recyclerview-v7:${android_support_lib_version}"
+    compile "com.android.support:cardview-v7:${android_support_lib_version}"
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    // Permission
+    compile 'pub.devrel:easypermissions:0.1.5'
+    "android.arch.lifecycle:runtime:1.0.3"
+    // Glide
+    compile 'com.github.bumptech.glide:glide:4.2.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.2.0'
+    // ViewPager Indicator
+    compile 'com.github.vivchar:ViewPagerIndicator:v1.0.1'
+    // Circle Image View
+    compile 'de.hdodenhof:circleimageview:2.2.0'
+    compile 'android.arch.lifecycle:extensions:1.0.0-rc1'
+    testCompile 'junit:junit:4.12'
+}
