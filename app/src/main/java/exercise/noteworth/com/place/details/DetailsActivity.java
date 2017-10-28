@@ -5,6 +5,8 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -25,6 +27,7 @@ public class DetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = DataBindingUtil.setContentView(this, R.layout.activity_place_details);
+        binding.fab.hide();
         setSupportActionBar(binding.toolbar);
         setTitle(null);
         if (getSupportActionBar() != null) {
@@ -41,6 +44,13 @@ public class DetailsActivity extends AppCompatActivity {
                 .get(DetailsViewModel.class);
         binding.setModel(viewModel);
         observeViewModel(viewModel);
+        binding.fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(view.getContext(), "Clicked", Toast.LENGTH_SHORT).show();
+                binding.fab.hide();
+            }
+        });
     }
 
     /**
@@ -56,6 +66,18 @@ public class DetailsActivity extends AppCompatActivity {
                     initPhotosAdapter(DetailsHelper.photoList(details.getResult().getPhotos()));
                     initPlaceAdapter(DetailsHelper.detailsList(details));
                     setTitle(details.getResult().getName());
+                    // Anchoring the Fab prevents animation.
+                    // Manually show Fab animation.
+                    binding.fab.show();
+                    binding.fab.setAlpha(0f);
+                    binding.fab.setScaleY(0f);
+                    binding.fab.setScaleX(0f);
+                    binding.fab.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .alpha(1f)
+                            .setDuration(200)
+                            .start();
                 }
             }
         });

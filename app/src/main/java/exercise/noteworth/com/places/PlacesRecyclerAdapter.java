@@ -21,8 +21,20 @@ public class PlacesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     private List<Result> resultList = new ArrayList<>();
 
     void setItems(List<Result> results) {
+        int listSize = resultList.size();
+        if (results.size() > 20) {
+            results.removeAll(resultList);
+            resultList.addAll(results);
+            notifyItemRangeInserted(listSize, results.size());
+        } else {
+            this.resultList.clear();
+            this.resultList.addAll(results);
+            notifyItemRangeInserted(0, results.size());
+        }
+    }
+
+    void clearItems() {
         this.resultList.clear();
-        this.resultList.addAll(results);
         notifyDataSetChanged();
     }
 

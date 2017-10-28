@@ -137,6 +137,8 @@ public class PlaceFragment extends Fragment implements Toolbar.OnMenuItemClickLi
                     placesRecyclerAdapter.setItems(resultList);
                     endlessParentScrollListener.resetState();
                     setFilterString();
+                } else {
+                    placesRecyclerAdapter.clearItems();
                 }
             }
         });
@@ -231,6 +233,7 @@ public class PlaceFragment extends Fragment implements Toolbar.OnMenuItemClickLi
      * Refresh Places
      */
     private void filterChanged() {
+        binding.drawer.closeDrawer(GravityCompat.END);
         endlessParentScrollListener.resetState();
         Integer sortByPosition = binding.spinnerFilter.getSelectedItemPosition();
         Integer radiusPosition = null;
