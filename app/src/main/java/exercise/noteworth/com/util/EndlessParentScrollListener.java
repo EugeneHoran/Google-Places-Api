@@ -17,7 +17,15 @@ public abstract class EndlessParentScrollListener implements NestedScrollView.On
     // before loading more.
     private int visibleThresholdDistance = 300;
 
-    RecyclerView.LayoutManager mLayoutManager;
+    private RecyclerView.LayoutManager mLayoutManager;
+
+    public EndlessParentScrollListener() {
+
+    }
+
+    public void setLayoutManager(RecyclerView.LayoutManager layoutManager) {
+        this.mLayoutManager = layoutManager;
+    }
 
     public EndlessParentScrollListener(RecyclerView.LayoutManager layoutManager) {
         this.mLayoutManager = layoutManager;
@@ -25,6 +33,9 @@ public abstract class EndlessParentScrollListener implements NestedScrollView.On
 
     @Override
     public void onScrollChange(NestedScrollView scrollView, int x, int y, int oldx, int oldy) {
+        if (mLayoutManager == null) {
+            return;
+        }
         // We take the last son in the scrollview
         View view = scrollView.getChildAt(scrollView.getChildCount() - 1);
         int distanceToEnd = (view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY()));

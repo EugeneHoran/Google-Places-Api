@@ -8,8 +8,18 @@ public class ModelTextSpaceLeft {
     }
 
     public String getTime() {
+        if (text == null) {
+            return "";
+        }
         String[] separated = text.split(":");
-        return "<b>" + separated[0] + "</b> " + separated[1] + ":" + separated[2] + ":" + separated[3];
+        String day = separated[0];
+        String dayTimeOrOpen = separated[1];
+        if (separated.length == 2) {
+            return "<b>" + day + "</b> " + dayTimeOrOpen;
+        } else if (separated.length == 4) {
+            return "<b>" + day + "</b> " + dayTimeOrOpen + ":" + separated[2] + ":" + separated[3];
+        }
+        return text;
     }
 
     public ModelTextSpaceLeft(String text) {

@@ -1,6 +1,8 @@
 package exercise.noteworth.com.places;
 
 
+import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,29 +13,17 @@ import java.util.List;
 
 import exercise.noteworth.com.databinding.RecyclerRestaurantItemBinding;
 import exercise.noteworth.com.model.Result;
+import exercise.noteworth.com.place.details.DetailsActivity;
+import exercise.noteworth.com.util.Common;
 import exercise.noteworth.com.util.ImageUtils;
 
 public class PlacesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private List<Result> resultList = new ArrayList<>();
-    private PlaceRecyclerInterface listener;
 
-    interface PlaceRecyclerInterface {
-        void onPlaceClicked(String placeId, View view);
-    }
-
-    public void setListener(PlaceRecyclerInterface listener) {
-        this.listener = listener;
-    }
-
-    public void setItems(List<Result> results) {
+    void setItems(List<Result> results) {
         this.resultList.clear();
         this.resultList.addAll(results);
         notifyDataSetChanged();
-    }
-
-    public void addItems(List<Result> results) {
-        this.resultList.addAll(results);
-        notifyItemRangeInserted(resultList.size(), results.size());
     }
 
     @Override
@@ -71,9 +61,11 @@ public class PlacesRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         @SuppressWarnings("unused")
         public void onPlaceClicked(View view) {
-            if (listener != null) {
-                listener.onPlaceClicked(result.getPlaceId(), binding.imageView);
-            }
+            Intent intentPlaceDetails = new Intent(view.getContext(), DetailsActivity.class);
+            Bundle bundlePlaceDetails = new Bundle();
+            bundlePlaceDetails.putString(Common.ARG_PLACE_ID, result.getPlaceId());
+            intentPlaceDetails.putExtras(bundlePlaceDetails);
+            view.getContext().startActivity(intentPlaceDetails);
         }
     }
 }

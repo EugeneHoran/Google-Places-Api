@@ -6,6 +6,7 @@
     <color name="colorBackground">#E1E2E1</color>
     <color name="colorBackgroundLight">#F5F5F6</color>
     <color name="colorAccent">#238592</color>
+    <color name="colorBottomNavGray">#999999</color>
 
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>

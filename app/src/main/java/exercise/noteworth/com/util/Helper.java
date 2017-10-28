@@ -2,7 +2,6 @@ package exercise.noteworth.com.util;
 
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListAdapter;
@@ -42,8 +41,6 @@ public class Helper {
         ViewGroup.LayoutParams params = myListView.getLayoutParams();
         params.height = totalHeight + (myListView.getDividerHeight() * (myListAdapter.getCount() - 1));
         myListView.setLayoutParams(params);
-        // print height of adapter on log
-        Log.i("height of listItem:", String.valueOf(totalHeight));
     }
 
     public static String getSortBy(Integer position) {

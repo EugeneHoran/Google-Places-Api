@@ -1,8 +1,9 @@
 package exercise.noteworth.com.places;
 
 import android.annotation.TargetApi;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
-import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.databinding.ObservableField;
 import android.graphics.Rect;
@@ -24,15 +25,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
+
+import java.util.List;
 
 import exercise.noteworth.com.R;
 import exercise.noteworth.com.databinding.FragmentPlaceBinding;
+import exercise.noteworth.com.model.Result;
 import exercise.noteworth.com.model.SearchData;
-import exercise.noteworth.com.model.SearchResult;
-import exercise.noteworth.com.place.details.DetailsActivity;
 import exercise.noteworth.com.util.AppBarCollapsedListener;
-import exercise.noteworth.com.util.Common;
 import exercise.noteworth.com.util.EndlessParentScrollListener;
 import exercise.noteworth.com.util.Helper;
 import exercise.noteworth.com.util.SwitchMultiButton;
@@ -40,33 +40,33 @@ import exercise.noteworth.com.util.SwitchMultiButton;
 import static android.view.View.VISIBLE;
 
 
-public class PlaceFragment extends Fragment implements PlaceContract.View, Toolbar.OnMenuItemClickListener {
+public class PlaceFragment extends Fragment implements Toolbar.OnMenuItemClickListener {
 
     private static final String STATE_KEYWORD_POS = "state_key_pos";
     public ObservableField<String> filterString = new ObservableField<>("Filtered by: ");
 
-    /**
-     * Set Presenter
-     *
-     * @param presenter PlacePresenter
-     */
-    @Override
-    public void setPresenter(PlaceContract.Presenter presenter) {
-        this.presenter = presenter;
-    }
-
     private FragmentPlaceBinding binding;
-    private PlaceContract.Presenter presenter;
     private ArrayAdapter<String> keywordAdapter;
     private PlacesRecyclerAdapter placesRecyclerAdapter;
-    private EndlessParentScrollListener endlessParentScrollListener;
     private int intKeywordPosition = -1;
+    private PlaceViewModel viewModel;
+    // Prevent spinners from calling view model on creation
+    private boolean spinnerFilterInit = false;
+    private boolean spinnerRadiusInit = false;
+    private int filterPos = 0;
+    private int radiusPos = 0;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            intKeywordPosition = savedInstanceState.getInt(STATE_KEYWORD_POS, -1);
+        }
+        viewModel = ViewModelProviders.of(this).get(PlaceViewModel.class);
         placesRecyclerAdapter = new PlacesRecyclerAdapter();
         keywordAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_multiple_choice, getResources().getStringArray(R.array.spinner_keyword));
+        spinnerFilterInit = false;
+        spinnerRadiusInit = false;
     }
 
     @Nullable
@@ -74,8 +74,7 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_place, container, false);
         binding.setFragment(this);
-        binding.setPresenter(new PlacePresenter(this));
-        binding.nestedScroll.invalidate();
+        binding.setModel(viewModel);
         return binding.getRoot();
     }
 
@@ -84,46 +83,34 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
         super.onViewCreated(v, savedInstanceState);
         // Toolbar
         binding.toolbar.inflateMenu(R.menu.menu_places);
-        binding.toolbar.setNavigationIcon(R.drawable.ic_restaurant);
         binding.toolbar.setOnMenuItemClickListener(this);
+        // DrawerLayout
+        binding.drawerLayout.setNestedScrollingEnabled(true);
         // ListView Keyword
-        binding.listViewKeyword.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         binding.listViewKeyword.setAdapter(keywordAdapter);
         Helper.getListViewSize(binding.listViewKeyword);
         // Recycler Restaurants
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        binding.recycler.setLayoutManager(layoutManager);
+        binding.recycler.setLayoutManager(new LinearLayoutManager(getActivity()));
         binding.recycler.setNestedScrollingEnabled(false);
         DividerItemDecoration itemDecorator = new DividerItemDecoration(getActivity(), DividerItemDecoration.VERTICAL);
         itemDecorator.setDrawable(ContextCompat.getDrawable(getActivity(), R.drawable.divider));
         binding.recycler.addItemDecoration(itemDecorator);
         binding.recycler.setAdapter(placesRecyclerAdapter);
-        placesRecyclerAdapter.setListener(new PlacesRecyclerAdapter.PlaceRecyclerInterface() {
-            @Override
-            public void onPlaceClicked(String placeId, View view) {
-                Intent intentPlaceDetails = new Intent(getActivity(), DetailsActivity.class);
-                Bundle bundlePlaceDetails = new Bundle();
-                bundlePlaceDetails.putString(Common.ARG_PLACE_ID, placeId);
-                intentPlaceDetails.putExtras(bundlePlaceDetails);
-                startActivity(intentPlaceDetails);
-            }
-        });
         // Nested scrolling
-        endlessParentScrollListener = new EndlessParentScrollListener(layoutManager) {
+        endlessParentScrollListener = new EndlessParentScrollListener(binding.recycler.getLayoutManager()) {
             @Override
             public void onLoadMore(int page, int totalItemsCount) {
-                presenter.loadRestaurantListPage();
+                viewModel.loadRestaurantListPage();
             }
         };
         binding.nestedScroll.setOnScrollChangeListener(endlessParentScrollListener);
-        // DrawerLayout
-        binding.drawerLayout.setNestedScrollingEnabled(true);
-        if (savedInstanceState != null) {
-            intKeywordPosition = savedInstanceState.getInt(STATE_KEYWORD_POS, -1);
-            filterChanged();
-        }
+        // Live data listener
+        observeViewModel(viewModel);
+
+        // Listeners
         initFilterListeners();
-        // Filter ModelTextHeader
+
+        // Filter header
         if (Helper.isL()) {
             initCustomBar();
         }
@@ -136,6 +123,36 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
         super.onSaveInstanceState(outState);
         outState.putInt(STATE_KEYWORD_POS, intKeywordPosition);
     }
+
+    /**
+     * Observe Live data @ {@link PlaceViewModel}
+     *
+     * @param viewModel PlaceViewModel
+     */
+    private void observeViewModel(final PlaceViewModel viewModel) {
+        viewModel.getPlacesList().observe(this, new Observer<List<Result>>() {
+            @Override
+            public void onChanged(@Nullable List<Result> resultList) {
+                if (resultList != null) {
+                    placesRecyclerAdapter.setItems(resultList);
+                    endlessParentScrollListener.resetState();
+                    setFilterString();
+                }
+            }
+        });
+    }
+
+    /**
+     * Endless Scroll Listener
+     * <p>
+     * Load More Places @ {@link PlaceViewModel}
+     */
+    private EndlessParentScrollListener endlessParentScrollListener = new EndlessParentScrollListener() {
+        @Override
+        public void onLoadMore(int page, int totalItemsCount) {
+            viewModel.loadRestaurantListPage();
+        }
+    };
 
     /**
      * Handle Filtering Listeners
@@ -151,7 +168,13 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
         binding.spinnerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                filterChanged();
+                if (spinnerFilterInit) {
+                    if (filterPos != i) {
+                        filterChanged();
+                    }
+                }
+                filterPos = i;
+                spinnerFilterInit = true;
             }
 
             @Override
@@ -162,7 +185,13 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
         binding.spinnerRadius.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                filterChanged();
+                if (spinnerRadiusInit) {
+                    if (i != radiusPos) {
+                        filterChanged();
+                    }
+                }
+                radiusPos = i;
+                spinnerRadiusInit = true;
             }
 
             @Override
@@ -198,7 +227,7 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
     /**
      * Handle Filtered Data
      * <p>
-     * Pass filtered data to {@link PlacePresenter}
+     * Pass filtered data to {@link PlaceViewModel}
      * Refresh Places
      */
     private void filterChanged() {
@@ -213,9 +242,8 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
         }
         Integer keywordPosition = binding.listViewKeyword.getCheckedItemPosition();
         Integer priceRange = binding.switchMoney.getSelectedTab();
-        presenter.setFilterData(sortByPosition, radiusPosition, keywordPosition, priceRange);
+        viewModel.setFilterData(sortByPosition, radiusPosition, keywordPosition, priceRange);
         setFilterString();
-
     }
 
     private void setFilterString() {
@@ -233,41 +261,8 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
      * @param searchData location name, lat, lon
      */
     public void locationLoaded(SearchData searchData) {
-        presenter.initSearchCred(searchData);
+        viewModel.setSearchData(searchData);
         filterChanged();
-    }
-
-    /**
-     * DetailsLocation missing from Presenter
-     * Ask user to select location
-     */
-    @Override
-    public void locationMissing() {
-        listener.showChangeLocationDialog();
-    }
-
-    /**
-     * Set Items to Place Adapter (clears list)
-     * from {@link PlacePresenter}
-     * Called after data complete
-     *
-     * @param searchResult SearchResult
-     */
-    @Override
-    public void initPlaceAdapter(SearchResult searchResult) {
-        placesRecyclerAdapter.setItems(searchResult.getResults());
-
-    }
-
-    /**
-     * Add Items to Place Adapter (adds items to list)
-     * from {@link PlacePresenter}
-     *
-     * @param searchResult SearchResult
-     */
-    @Override
-    public void addPlaceAdapterItems(SearchResult searchResult) {
-        placesRecyclerAdapter.addItems(searchResult.getResults());
     }
 
     /**
@@ -280,21 +275,6 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
             binding.drawer.openDrawer(GravityCompat.END);
         }
         return false;
-    }
-
-    // TODO remove
-    private String getKeyword() {
-        if (intKeywordPosition == -1) {
-            return null;
-        } else {
-            return keywordAdapter.getItem(intKeywordPosition);
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        presenter.onDestroy();
-        super.onDestroy();
     }
 
     /**
@@ -340,6 +320,9 @@ public class PlaceFragment extends Fragment implements PlaceContract.View, Toolb
         });
     }
 
+    /**
+     * Show header
+     */
     private void showCustomHeader() {
         if (!customBarInitiated) {
             binding.headerFilter.setVisibility(View.GONE);

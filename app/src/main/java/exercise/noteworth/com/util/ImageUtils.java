@@ -14,7 +14,6 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 import exercise.noteworth.com.BuildConfig;
 import exercise.noteworth.com.R;
 import exercise.noteworth.com.model.Result;

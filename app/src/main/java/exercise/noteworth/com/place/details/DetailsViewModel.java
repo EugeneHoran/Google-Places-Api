@@ -10,7 +10,6 @@ import exercise.noteworth.com.api.PlacesClient;
 import exercise.noteworth.com.model.Details;
 import exercise.noteworth.com.util.Helper;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
@@ -58,7 +57,7 @@ public class DetailsViewModel extends ViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<Response<Details>>() {
                     @Override
-                    public void onNext(@NonNull final Response<Details> searchResultResponse) {
+                    public void onNext(final Response<Details> searchResultResponse) {
                         data.setValue(searchResultResponse.body());
                         setDetails(searchResultResponse.body());
                     }
@@ -77,7 +76,7 @@ public class DetailsViewModel extends ViewModel {
                     }
 
                     @Override
-                    public void onError(@NonNull Throwable e) {
+                    public void onError(Throwable e) {
                         data.setValue(null);
                     }
                 }));
