@@ -189,7 +189,7 @@
                     android:layout_marginLeft="16dp"
                     android:layout_marginRight="16dp"
                     android:padding="8dp"
-                    app:selectedColor="#1c7626"
+                    app:selectedColor="@color/colorAccent"
                     app:selectedTab="-1"
                     app:strokeRadius="16dp"
                     app:strokeWidth="1dp"
